@@ -1,0 +1,10 @@
+{
+  "name": "concert-pipeline-v1",
+  "version": "0.0.1",
+  "description": "V1 of Concert Media's Pipeline Database",
+  "main": "index.js",
+  "repository": "https://github.com/concert-media/concert-pipeline-v1.git",
+  "author": "Kevin <kevin@kevincoelho.com>",
+  "license": "MIT",
+  "private": true
+}
