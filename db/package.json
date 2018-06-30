@@ -1,0 +1,20 @@
+{
+  "name": "concert-media-db-configs",
+  "version": "0.0.1",
+  "description": "Concert Media database configs / utils",
+  "main": "index.js",
+  "author": "Kevin Coelho <kevin@kevincoelho.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "moment": "^2.22.2",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "chalk": "^2.4.1"
+  },
+  "scripts": {
+  	"extract-globals-dev": "NODE_ENV=DEV node extract_globals.js"
+  }
+}
