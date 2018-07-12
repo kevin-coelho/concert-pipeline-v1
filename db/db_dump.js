@@ -12,10 +12,12 @@
  * 		node
  */
 // DEPENDENCIES
-const { spawn } = require('child_process');
-const moment = require('moment');
-const path = require('path');
+const Promise = require('bluebird');
 const chalk = require('chalk');
+const spawn = require('child-process-promise').spawn;
+const moment = require('moment');
+const PrettyError = require('pretty-error');
+const pe = new PrettyError();
 
 // CONFIGS
 const { 
@@ -43,7 +45,7 @@ const DB_DUMP_FILE = (devMode => {
 	return `${TIMESTP}_${devMode ? 'DEV' : 'PROD'}_${LOCAL_DB_NAME}_dump.sql.gz`;
 })(devMode);
 
-const EXTRACT_GLOBALS_COMMANDS = (devMode => {
+const PGDUMP_COMMANDS = (devMode => {
 	const commands = [];
 	if(devMode) {
 		// generate full db dump
@@ -71,6 +73,22 @@ const EXTRACT_GLOBALS_COMMANDS = (devMode => {
 	return commands;
 })(devMode);
 
-console.log('Running commands..\n\t', EXTRACT_GLOBALS_COMMANDS.map(command => {
-	return chalk.yellow(command.join(' '));
-}).join('\n\t'));
+PGDUMP_COMMANDS.reduce((a, c, i) => {
+	return a.then(() => {
+		console.log('Running command', chalk.yellow(c));
+		return spawn(c[0], c[1] ? c.slice(1) : [], { capture: [ 'stdout', 'stderr' ] })
+		.then(function (result) {
+			console.log('[spawn] stdout: ', result.stdout.toString());
+		})
+		.catch(function (err) {
+			console.error('[spawn] stderr: ', err.stderr);
+		});
+	});
+}, Promise.resolve(null))
+.then((res) => {
+	if(res) console.log(res);
+	console.log(chalk.green('Job completed with no errors.'));
+})
+.catch(err => console.error(pe.render(err)));
+
+

@@ -7,14 +7,16 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "child_process": "^1.0.2",
+    "bluebird": "^3.5.1",
+    "child-process-promise": "^2.2.1",
     "moment": "^2.22.2",
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "chalk": "^2.4.1"
+    "chalk": "^2.4.1",
+    "pretty-error": "^2.1.1"
   },
   "scripts": {
-  	"extract-globals-dev": "NODE_ENV=DEV node extract_globals.js"
+    "dump-dev": "NODE_ENV=DEV node db_dump.js"
   }
 }
