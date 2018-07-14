@@ -16,6 +16,7 @@ const Promise = require('bluebird');
 const chalk = require('chalk');
 const spawn = require('child-process-promise').spawn;
 const moment = require('moment');
+const path = require('path');
 const PrettyError = require('pretty-error');
 const pe = new PrettyError();
 
@@ -37,28 +38,17 @@ const TIMESTP = moment().utc().unix();
 
 // 1318781876_DEV_globals.sql
 const ROLES_GLOBALS_FILE = (devMode => {
-	return `${TIMESTP}_${devMode ? 'DEV' : 'PROD'}_globals.sql`;
+	return path.resolve(DB_DUMP_OUTDIR_DEFAULT, `${TIMESTP}_${devMode ? 'DEV' : 'PROD'}_globals.sql`);
 })(devMode);
 
 // 1318781876_DEV_concert_media_local_v1_dump.sql.gz
 const DB_DUMP_FILE = (devMode => {
-	return `${TIMESTP}_${devMode ? 'DEV' : 'PROD'}_${LOCAL_DB_NAME}_dump.sql.gz`;
+	return path.resolve(DB_DUMP_OUTDIR_DEFAULT, `${TIMESTP}_${devMode ? 'DEV' : 'PROD'}_${LOCAL_DB_NAME}_dump.sql.gz`);
 })(devMode);
 
 const PGDUMP_COMMANDS = (devMode => {
 	const commands = [];
 	if(devMode) {
-		// generate full db dump
-		commands.push([
-			'pg_dump', 
-			'-d', LOCAL_DB_NAME, 
-			'-p', LOCAL_DB_PORT, 
-			'-h', LOCAL_DB_HOST, 
-			'-U', DB_USER_NAME, 
-			'--no-password', 
-			'-F', 'directory', 
-			'-f', DB_DUMP_FILE
-			]);
 		// generate roles
 		commands.push([
 			'pg_dumpall', 
@@ -68,6 +58,18 @@ const PGDUMP_COMMANDS = (devMode => {
 			'--no-password',
 			'--globals-only',
 			'-f', ROLES_GLOBALS_FILE,
+			]);		
+		// generate full db dump, create compressed zip
+		commands.push([
+			'pg_dump', 
+			'-d', LOCAL_DB_NAME, 
+			'-p', LOCAL_DB_PORT, 
+			'-h', LOCAL_DB_HOST, 
+			'-U', DB_USER_NAME, 
+			'--no-password', 
+			'-F', 'directory',
+			'|', 'gzip', '>',
+			DB_DUMP_FILE
 			]);
 	}
 	return commands;
@@ -76,12 +78,13 @@ const PGDUMP_COMMANDS = (devMode => {
 PGDUMP_COMMANDS.reduce((a, c, i) => {
 	return a.then(() => {
 		console.log('Running command', chalk.yellow(c));
-		return spawn(c[0], c[1] ? c.slice(1) : [], { capture: [ 'stdout', 'stderr' ] })
+		return spawn('sh', ['-c', c.join(' ')], { capture: [ 'stdout', 'stderr' ] })
 		.then(function (result) {
 			console.log('[spawn] stdout: ', result.stdout.toString());
 		})
 		.catch(function (err) {
 			console.error('[spawn] stderr: ', err.stderr);
+
 		});
 	});
 }, Promise.resolve(null))
