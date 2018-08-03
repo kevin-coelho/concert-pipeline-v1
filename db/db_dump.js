@@ -5,6 +5,7 @@
  * easily importing / exporting global configs between databases.
  * 
  * Requires:
+ * 		sh
  * 		pg_dump
  * 		pg_dumpall
  * 		gzip
